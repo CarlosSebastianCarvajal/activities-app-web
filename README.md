@@ -38,6 +38,9 @@ Pantalla de actividades de equipos
 Crear actividad de Equipo
 ![alt text](https://github.com/CarlosSebastianCarvajal/activities-app-web/blob/main/capturas/app-crear-actividad-grupo.PNG)
 
+Pantalla del detalle y cumplimiento de los integrantes en una actividad
+![alt text](https://github.com/CarlosSebastianCarvajal/activities-app-web/blob/main/capturas/app-equipo-actividad-detalle.PNG)
+
 Pantalla de los equipos ingresados desde un usuario que esta como integrante en distintos equipos:
 ![alt text](https://github.com/CarlosSebastianCarvajal/activities-app-web/blob/main/capturas/app-cumplimiento-equipo.PNG)
 
