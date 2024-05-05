@@ -1,20 +1,13 @@
 import React, { useState } from "react";
-import ReactDOM from 'react-dom/client';
 
-import DetalleActividadPersonal from "../pantallas/detalle_culminar/detalle_actividad_personal";
+import { useNavigate } from "react-router-dom";
 
 
 function ActividadPersonalItem(props){
+    const navigate = useNavigate();
 
     const detalleActividadRender = () => {
-        const root = ReactDOM.createRoot(document.getElementById('contenido'));
-        root.render(
-          <React.StrictMode>
-            <DetalleActividadPersonal 
-                nombre={props.nombre}
-                descripcion={props.descripcion}/>
-          </React.StrictMode>
-        );
+        navigate('/detalleactividadpersonal', { state: { idactividadpersonal: props.id} });
       };
 
     var descripcionRecortada;

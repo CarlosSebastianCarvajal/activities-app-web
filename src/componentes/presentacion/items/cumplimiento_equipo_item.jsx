@@ -1,19 +1,12 @@
-
 import React, { useState } from "react";
-import ReactDOM from 'react-dom/client';
-
-import CumplimientoEquiposActividades from '../pantallas/listas/cumplimiento_equipos_actividades';
+import { useNavigate } from "react-router-dom";
 
 
 function CumplimientoEquipoItem(props){
-    
-    const misEquiposActividadesRender = () => {
-        const root = ReactDOM.createRoot(document.getElementById('contenido'));
-        root.render(
-          <React.StrictMode>
-            <CumplimientoEquiposActividades/>
-          </React.StrictMode>
-        );
+    const navigate = useNavigate();
+
+    const cumplimientoEquiposActividadesRender = () => {
+        navigate('/cumplimientoequiposactividades', { state: { idequipo: props.idequipo, idintegrante: props.idintegrante} });    
       };
 
 
@@ -42,7 +35,7 @@ function CumplimientoEquipoItem(props){
                     borderBottomLeftRadius: 0,
                     borderBottomRightRadius: 0
                 }}
-                onClick={misEquiposActividadesRender}
+                onClick={cumplimientoEquiposActividadesRender}
                 >
                     <h5 class="card-title">{props.nombreEquipo}</h5>
                 </div>

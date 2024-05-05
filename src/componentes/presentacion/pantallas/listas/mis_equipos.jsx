@@ -1,23 +1,58 @@
-import React, { useState } from "react";
-import ReactDOM from 'react-dom/client';
-import { Table } from 'react-bootstrap';
+import React, { useState, useContext, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { UserContext } from '../../../../usercontext.jsx';
 
-import CrearEquipo from "../creacion/crear_equipo_trabajo";
+import { Table } from 'react-bootstrap';
+import { Spinner } from 'react-bootstrap';
+
 import EquipoItem from "../../items/equipo_item";
 import HeaderGeneral from "../../../items_generales/header";
 import Navbarsecundario from '../../../navegacion/navbar/navbar2.jsx';
 
 
-
-
 function MisEquipos(){
+    const navigate = useNavigate();
+    const { userData } = useContext(UserContext);
+    const [isLoading, setIsLoading] = useState(true); 
+
+    const [listaEquipos, setEquipos] = useState([]);
+
+      useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await fetch('http://localhost:8080/listarMisEquipos/' + userData.userId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json', // Asegúrate de ajustar el tipo de contenido según lo que espera tu API
+                }
+                });
+        
+                if (!response.ok) {
+                throw new Error('Error al obtener los datos');
+                }
+        
+                const respuesta = await response.json();
+                console.log(respuesta);
+                if(respuesta.access == 1){
+                    setEquipos(respuesta.info);
+                    setIsLoading(false);
+                }else{
+                    window.alert(respuesta.message);  
+                    setIsLoading(false);
+                    throw new Error(respuesta.message);
+                }
+                
+            } catch (error) {
+                console.error('Error al obtener los datos:', error);
+                setIsLoading(false);
+            }
+            };
+        
+            fetchData();
+        }, []);
+
     const crearEquipoTrabajoRender = () => {
-        const root = ReactDOM.createRoot(document.getElementById('contenido'));
-        root.render(
-          <React.StrictMode>
-            <CrearEquipo/>
-          </React.StrictMode>
-        );
+        navigate('/crearequipo');
       };
     return (
         <div>
@@ -44,26 +79,30 @@ function MisEquipos(){
               
                 <div className="divEspacio-15"></div>
                 <div className="row">
-                    <EquipoItem 
-                        nombreEquipo="Equipo 1"
-                        color="#FF6C3D"
-                        cantidadIntegrantes="4 Integrantes"
-                        descripcion="Pariatur cillum proident sit veniam dolor consectetur deserunt fugiat et. Lorem excepteur ipsum incididunt est ullamco tempor magna fugiat consequat esse velit incididunt excepteur sint. Proident nulla proident Lorem nisi et aliquip sint aliquip magna. Consequat deserunt laborum sit nostrud non enim minim. Mollit Lorem aliqua do deserunt deserunt voluptate sunt culpa fugiat. Aliqua non ullamco adipisicing occaecat aliquip."
-                    />
-
-                    <EquipoItem 
-                        nombreEquipo="Equipo 2"
-                        color="#D6DCFF"
-                        cantidadIntegrantes="6 Integrantes"
-                        descripcion="Pariatur cillum proident sit veniam dolor consectetur deserunt fugiat et. Lorem excepteur ipsum incididunt est ullamco tempor magna fugiat consequat esse velit incididunt excepteur sint. Proident nulla proident Lorem nisi et aliquip sint aliquip magna. Consequat deserunt laborum sit nostrud non enim minim. Mollit Lorem aliqua do deserunt deserunt voluptate sunt culpa fugiat. Aliqua non ullamco adipisicing occaecat aliquip."
-                    />
-                    <EquipoItem 
-                        nombreEquipo="Equipo 2"
-                        color="#3DFF46"
-                        cantidadIntegrantes="8 Integrantes"
-                        descripcion="Pariatur cillum proident sit veniam dolor consectetur deserunt fugiat et. Lorem excepteur ipsum incididunt est ullamco tempor magna fugiat consequat esse velit incididunt excepteur sint. Proident nulla proident Lorem nisi et aliquip sint aliquip magna. Consequat deserunt laborum sit nostrud non enim minim. Mollit Lorem aliqua do deserunt deserunt voluptate sunt culpa fugiat. Aliqua non ullamco adipisicing occaecat aliquip."
-                    />
-                    
+                {
+                    isLoading ? (
+                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+                                <Spinner animation="border" role="status">
+                                    <span className="sr-only"></span>
+                                    
+                                </Spinner>
+                                <text>Cargando...</text>
+                            </div>
+                    ):(
+                    listaEquipos.map(itemEquipo => {
+                        return (
+                            <EquipoItem
+                                idequipo={itemEquipo.equipo.idequipo} 
+                                nombreEquipo={itemEquipo.equipo.nombre}
+                                color={itemEquipo.equipo.color}
+                                cantidadIntegrantes={itemEquipo.numeroIntegrantes}
+                                descripcion={itemEquipo.equipo.descripcion}
+                            />
+                            
+                        );
+                    })
+                    )
+                } 
                 </div>
             </div>
         </div>

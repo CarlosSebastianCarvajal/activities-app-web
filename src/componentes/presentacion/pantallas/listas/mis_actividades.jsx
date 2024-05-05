@@ -18,7 +18,7 @@ function MisActividades(){
     const crearActividadPersonalRender = () => {
         navigate('/crearactividadpersonal')
       };
-    
+    /*
       const fechaMapeada = (fecha) => {
         var meses = ['','Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Agosto', 'Noviembre', 'Diciembre']
 
@@ -26,7 +26,7 @@ function MisActividades(){
         var mes = meses[fecha[1]];
         var anio = fecha[0];
         return dia+'/'+mes+'/'+anio;
-      };
+      };*/
 
       const [listaActividades, setActividades] = useState([]);
 
@@ -50,8 +50,8 @@ function MisActividades(){
                     setActividades(actividades.info);
                     setIsLoading(false);
                 }else{
-                    throw new Error(actividades.message);
                     setIsLoading(false);
+                    throw new Error(actividades.message);
                 }
                 
             } catch (error) {
@@ -104,7 +104,7 @@ function MisActividades(){
                                 key={itemActividad.id}
                                 id={itemActividad.id}
                                 nombre={itemActividad.nombre}
-                                fecha={fechaMapeada(itemActividad.fechaculminacion)}
+                                fecha={itemActividad.fechaculminacion}
                                 estado={itemActividad.estado}
                                 descripcion={itemActividad.descripcion}
                             />

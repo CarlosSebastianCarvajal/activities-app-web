@@ -3,7 +3,7 @@ import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
 
-import React, { useState , useContext, useEffect } from 'react';
+import React, { useContext } from 'react';
 
 import { UserContext } from '../../../usercontext.jsx';
 import { useNavigate } from "react-router-dom";
@@ -13,7 +13,7 @@ function Navbarsecundario(){
   const { userData } = useContext(UserContext);
 
   const cerrarSesion = () => {
-    navigate('/');
+    navigate('/login');
   }
 
   const navegarHome = () => {
@@ -29,6 +29,10 @@ function Navbarsecundario(){
     navigate('/misequipos');
   }
 
+  const navegarTabla = () => {
+    navigate('/dynamictable');
+  }
+
     return (
       <Navbar collapseOnSelect expand="lg"  bg="primary" data-bs-theme="dark">
       <Container>
@@ -38,12 +42,12 @@ function Navbarsecundario(){
           <Nav className="me-auto">
             <Nav.Link onClick={navegarHome}>Inicio</Nav.Link>
             <Nav.Link onClick={navegarMisActividades}>Mis Actividades</Nav.Link>
-            <Nav.Link onClick={navegarEquiposTrabajo}>Equipos de Trabajo</Nav.Link>
             <Nav.Link onClick={navegarMisEquipos}>Mis Equipos</Nav.Link>
+            <Nav.Link onClick={navegarEquiposTrabajo}>Equipos Integrados</Nav.Link>
           </Nav>
           <Nav>
             <NavDropdown title={userData.userName} id="collapsible-nav-dropdown">
-              <NavDropdown.Item onClick={cerrarSesion}>
+              <NavDropdown.Item  href="/">
                 Cerrar Sesion
               </NavDropdown.Item>
             </NavDropdown>

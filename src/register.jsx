@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 
 import { Table } from 'react-bootstrap';
 import Modal from 'react-bootstrap/Modal';
@@ -26,6 +26,37 @@ function Register(){
         navigate('/');
     }
 
+    //Para obtner el pais
+    const [countries, setCountries] = useState([]);
+    //Para obtener la ciudad
+    const [ciudades, setCiudades] = useState([]);
+
+
+    useEffect(() => {
+      const fetchData = async () => {
+          try {
+              const response = await fetch('http://localhost:8080/listarPais', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json', 
+              }
+              });
+      
+              if (!response.ok) {
+              throw new Error('Error al obtener los paises');
+              }
+              const paises = await response.json();
+              setCountries(paises);
+              
+              
+          } catch (error) {
+              console.error('Error al obtener los datos:', error);
+          }
+          };
+      
+          fetchData();
+    }, []);
+
     return (
         <div>
             <Navbarvacio/>
@@ -50,6 +81,44 @@ function Register(){
 
                 <div className="divEspacio-15"></div>
                 <div>
+                <form>
+                    <div className="mb-3">
+                    <label htmlFor="nombre" className="form-label">NOMBRE  DE LA ACTIVIDAD</label>
+                    <input type="text" className="form-control" id="nombre" name="nombre" value={formData.nombre} onChange={handleChange} placeholder="Ingrese nombre de actividad" />
+                    </div>
+                    <div className="mb-3">
+                    <label htmlFor="descripcion" className="form-label">DESCRIPCIÓN</label>
+                    <input type="text" className="form-control" id="descripcion" name="descripcion" value={formData.descripcion} onChange={handleChange} placeholder="Ingrese la descripción de la actividad" />
+                    </div>
+                    <div className="mb-3">
+                    <label htmlFor="fechaculminacion" className="form-label">FECHA CULMINACIÓN</label>
+                    <input type="date" className="form-control" id="fechaculminacion" name="fechaculminacion" value={formData.fechaculminacion} onChange={handleChange}  />
+                    </div>
+                    <div className="mb-3">
+                    <label htmlFor="idpais" className="form-label">PAÍS</label>
+                    <select  className="form-control" id="idpais" name="idpais" value={formData.idpais} onChange={handleChange} >
+                        {
+                            countries.map(country => {
+                                 return (
+                                        <option key={country.idpais} value={country.idpais}>{country.nombre}</option>
+                                    );
+                            })
+                        }
+                    </select>
+                    </div>
+                    <div className="mb-3">
+                    <label htmlFor="idciudad" className="form-label">CIUDAD</label>
+                    
+                    </div>
+                    <div className="mb-3">
+                    <label htmlFor="pathdocguia" className="form-label">ARCHIVO GUÍA</label>
+                    <input type="file" className="form-control" id="pathdocguia" name="pathdocguia" value={formData.pathdocguia} onChange={handleChange} />
+                    </div>
+                    <div className="mb-3 form-check">
+                    </div>
+                    <button type="button" className="btn btn-primary" onClick={handleShow}>Guardar Actividad Personal</button>
+                </form> 
+
                 <Form>
                     <Form.Group className="mb-3" controlId="nombres">
                         <Form.Label>NOMBRES</Form.Label>

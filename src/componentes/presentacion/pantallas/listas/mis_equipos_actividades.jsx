@@ -1,33 +1,63 @@
-import React, { useState } from "react";
-import ReactDOM from 'react-dom/client';
+import React, { useState, useContext, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+
 import { Table } from 'react-bootstrap';
+import { Spinner } from 'react-bootstrap';
 
-import MisEquipos from "./mis_equipos";
-import CrearActividadEquipo from "../creacion/crear_actividad_equipo";
 import EquipoActividadItem from "../../items/equipo_actividad_item";
-
 import HeaderGeneral from "../../../items_generales/header";
 import Navbarsecundario from '../../../navegacion/navbar/navbar2.jsx';
 
 
 function MisEquiposActividades(){
+    const navigate = useNavigate();
+    const location = useLocation();
+    const [isLoading, setIsLoading] = useState(true); 
+    const { idequipo } = location.state;
+    const [listaEquipoActividades, setEquipoActividades] = useState([]);
+
+      useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await fetch('http://localhost:8080/listarActividadesEquipo/' + idequipo, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json', // Asegúrate de ajustar el tipo de contenido según lo que espera tu API
+                }
+                });
+        
+                if (!response.ok) {
+                throw new Error('Error al obtener los datos');
+                }
+        
+                const respuesta = await response.json();
+                console.log(respuesta);
+                if(respuesta.access == 1){
+                    setEquipoActividades(respuesta.info);
+                    setIsLoading(false);
+                }else{
+                    window.alert(respuesta.message);  
+                    setIsLoading(false);
+                    throw new Error(respuesta.message);
+                }
+                
+            } catch (error) {
+                console.error('Error al obtener los datos:', error);
+                setIsLoading(false);
+            }
+            };
+        
+            fetchData();
+        }, []);
+
+    //NAVEGACION
     const misEquiposRender = () => {
-        const root = ReactDOM.createRoot(document.getElementById('contenido'));
-        root.render(
-          <React.StrictMode>
-            <MisEquipos/>
-          </React.StrictMode>
-        );
+        navigate('/misequipos');
+      };
+      const crearActividadEquipoRender = () => {
+        navigate('/crearactividadequipo', { state: { idequipo: idequipo} });
       };
 
-      const crearActividadEquipoRender = () => {
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(
-          <React.StrictMode>
-            <CrearActividadEquipo/>
-          </React.StrictMode>
-        );
-      };
     return (
         <div>
             <Navbarsecundario/>
@@ -55,25 +85,30 @@ function MisEquiposActividades(){
 
                 <div className="divEspacio-15"></div>
                 <div className="row">
-                    <EquipoActividadItem 
-                        nombre="Entregar Calificaciones del parcial"
-                        fecha="23-02-2024"
-                        cumplimiento="2/8"
-                        descripcion="Pariatur cillum proident sit veniam dolor consectetur deserunt fugiat et. Lorem excepteur ipsum incididunt est ullamco tempor magna fugiat consequat esse velit incididunt excepteur sint. Proident nulla proident Lorem nisi et aliquip sint aliquip magna. Consequat deserunt laborum sit nostrud non enim minim. Mollit Lorem aliqua do deserunt deserunt voluptate sunt culpa fugiat. Aliqua non ullamco adipisicing occaecat aliquip."
-                    />
-                    <EquipoActividadItem 
-                        nombre="Reunion de profesores en el auditorio"
-                        fecha="22-02-2024"
-                        cumplimiento="0/6"
-                        descripcion="Pariatur cillum proident sit veniam dolor consectetur deserunt fugiat et. Lorem excepteur ipsum incididunt est ullamco tempor magna fugiat consequat esse velit incididunt excepteur sint. Proident nulla proident Lorem nisi et aliquip sint aliquip magna. Consequat deserunt laborum sit nostrud non enim minim. Mollit Lorem aliqua do deserunt deserunt voluptate sunt culpa fugiat. Aliqua non ullamco adipisicing occaecat aliquip."
-                    />
-                    <EquipoActividadItem 
-                        nombre="Firma de documentacion"
-                        fecha="24-02-2024"
-                        cumplimiento="1/10"
-                        descripcion="Pariatur cillum proident sit veniam dolor consectetur deserunt fugiat et. Lorem excepteur ipsum incididunt est ullamco tempor magna fugiat consequat esse velit incididunt excepteur sint. Proident nulla proident Lorem nisi et aliquip sint aliquip magna. Consequat deserunt laborum sit nostrud non enim minim. Mollit Lorem aliqua do deserunt deserunt voluptate sunt culpa fugiat. Aliqua non ullamco adipisicing occaecat aliquip."
-                    />
-             
+                {
+                    isLoading ? (
+                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+                                <Spinner animation="border" role="status">
+                                    <span className="sr-only"></span>
+                                    
+                                </Spinner>
+                                <text>Cargando...</text>
+                            </div>
+                    ):(
+                    listaEquipoActividades.map(itemActividad => {
+                        return (
+                                <EquipoActividadItem 
+                                    idequipo = {idequipo}
+                                    idactividadequipo={itemActividad.actividadEquipo.idactividadequipo}
+                                    nombre={itemActividad.actividad.nombre}
+                                    fecha={itemActividad.fechaCulminacionTexto}
+                                    cumplimiento={itemActividad.cumplimiento}
+                                    descripcion={itemActividad.actividad.descripcion}
+                                />
+                        );
+                    })
+                    )
+                }   
                 </div>
             </div>
         </div>

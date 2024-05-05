@@ -1,26 +1,108 @@
-import React, { useState } from "react";
-import ReactDOM from 'react-dom/client';
-import MisActividades from "../listas/mis_actividades";
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from 'react-router-dom';
+
 
 import { Table } from 'react-bootstrap';
-import Button from 'react-bootstrap/Button';
-import Form from 'react-bootstrap/Form';
 
 import HeaderGeneral from "../../../items_generales/header";
+import Navbarsecundario from '../../../navegacion/navbar/navbar2.jsx';
 
 
+function DetalleActividadPersonal(){
+    const navigate = useNavigate()
+    const location = useLocation();
+    const { idactividadpersonal } = location.state;
 
-function DetalleActividadPersonal(props){
-    const misActividadesRender = () => {
-        const root = ReactDOM.createRoot(document.getElementById('contenido'));
-        root.render(
-          <React.StrictMode>
-            <MisActividades/>
-          </React.StrictMode>
-        );
+
+    //para los datos del formulario
+    const [formData, setFormData] = useState({
+        observacion: '',
+        pathdocevidencia: ''
+      });
+      const handleChange = (event) => {
+        const { name, value } = event.target;
+        setFormData(prevState => ({
+          ...prevState,
+          [name]: value
+        }));
       };
+
+      const handleSubmit = async () => {
+        var data = JSON.stringify({
+            idactividadpersonal: idactividadpersonal,
+            observacion: formData.observacion,
+            pathdocevidencia:'https://www.cuentosinfantiles.top/wp-content/uploads/cuentos_digital/Rapunzel.pdf'
+            
+          });
+          console.log(data);
+          //aqui la logica de guardado y navegar a la pantalla de lista actividad
+          try {
+            const response = await fetch('http://localhost:8080/cumplirActividadPersonalActividad', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: data
+            });
+      
+            if (!response.ok) {
+                window.alert('Error al guardar cumplimiento');
+              throw new Error('Error al guardar cumplimiento');
+            }
+
+            const respuesta = await response.json();
+            if(respuesta != null){
+              if(respuesta.access == 1){
+                console.log(respuesta);
+                window.alert(respuesta.message);
+                navigate('/misactividades');
+              }else{
+                window.alert(respuesta.message);    
+                console.log(respuesta);
+              }
+            }
+        }catch (error) {
+            console.error('Error: ', error);
+        }
+      }
+    
+    const misActividadesRender = () => {
+        navigate('/misactividades');
+      };
+    //Para obtner el detalle de la actividad
+    const [detalle, setDetalle] = useState([]);
+
+    useEffect(() => {
+      const fetchData = async () => { 
+          try {
+              const response = await fetch('http://localhost:8080/verActividadPersonalActividad/' + idactividadpersonal, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json', 
+              }
+              });
+      
+              if (!response.ok) {
+              throw new Error('Error al obtener el detalle');
+              }
+              const respuesta = await response.json();
+              console.log(respuesta);
+              if(respuesta.access == 1){
+                    setDetalle(respuesta.info);
+                }else{
+                    throw new Error(respuesta.message);
+                }              
+              
+          } catch (error) {
+              console.error('Error al obtener los datos:', error);
+          }
+          };
+      
+          fetchData();
+  }, []);
     return (
         <div>
+            <Navbarsecundario/>
             <HeaderGeneral titulo="Detalle Actividad"/>
         <div class="container">
             <div>
@@ -42,35 +124,29 @@ function DetalleActividadPersonal(props){
                 </div>
 
                 <div className="divEspacio-15"></div>
-                <h1><center>{props.nombre}</center></h1>
+                <h1><center>{detalle.nombre}</center></h1>
                 <div>
-                <p align="justify">{props.descripcion}</p>
-                <p align="left">Quevedo, Ecuador</p>
-                <p align="left">Fecha límite: 26/02/2024</p>
-                <p align="left">Estado: Pendiente</p>
+                <p align="justify">{detalle.descripcion}</p>
+                <p align="left">{detalle.ciudad}</p>
+                <p align="left"> Fecha límite: {detalle.fechaculminacion}</p>
+                <p align="left">Estado: {detalle.estado}</p>
                 <button type="button" class="btn btn-outline-info">Abrir Documento Guía</button>
-                <Form>
-                <Form.Group className="mb-3" controlId="a" style={{height:40}}></Form.Group>
-                
-                
-                    <Form.Group className="mb-3" controlId="observacionActividad">
-                        <Form.Label>OBSERVACIÓN</Form.Label>
-                        <Form.Control type="text" placeholder="Ingrese observación" />
-                    </Form.Group>
-                    
 
-                    <Form.Group className="mb-3" controlId="documentoEvidencia">
-                        <Form.Label>DOCUMENTO EVIDENCIA</Form.Label>
-                        <Form.Control type="file" placeholder="subir archivo" />
-                    </Form.Group>
+                <form>
+                    <div className="mb-3 form-check"></div>
+                    <div className="mb-3">
+                    <label htmlFor="observacion" className="form-label">OBSERVACIÓN</label>
+                    <input type="text" className="form-control" id="observacion" name="observacion" value={formData.observacion} onChange={handleChange} placeholder="Ingrese observacion" />
+                    </div>
+                    <div className="mb-3">
+                    <label htmlFor="pathdocevidencia" className="form-label">DOCUMENTO EVIDENCIA</label>
+                    <input type="file" className="form-control" id="pathdocevidencia" name="pathdocevidencia" value={formData.pathdocevidencia} onChange={handleChange} placeholder="Subir documento" />
+                    </div>
+                    <button type="button" className="btn btn-primary" onClick={handleSubmit}>Registrar Cumplimiento</button>
+                    <div className="mb-3 form-check"></div>
+                    <div className="mb-3"></div>
+                </form> 
 
-                   
-                    <Button variant="primary" type="submit">
-                        Registrar Cumplimiento
-                    </Button>
-
-                    <Form.Group className="mb-3" controlId="a"></Form.Group>
-                </Form>
                 </div>
             </div>
         </div>

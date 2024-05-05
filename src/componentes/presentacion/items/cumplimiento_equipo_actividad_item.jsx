@@ -1,19 +1,11 @@
 import React, { useState } from "react";
-import ReactDOM from 'react-dom/client';
-import DetalleCumplimientoActividadEquipo from "../pantallas/detalle_culminar/detalle_cumplimiento_actividad_equipo";
-
+import { useNavigate } from "react-router-dom";
 
 function CumplimientoEquipoActividadItem(props){
+    const navigate = useNavigate();
 
     const detalleCumplimientoActividadEquipoRender = () => {
-        const root = ReactDOM.createRoot(document.getElementById('contenido'));
-        root.render(
-          <React.StrictMode>
-            <DetalleCumplimientoActividadEquipo 
-                nombre={props.nombre}
-                descripcion={props.descripcion}/>
-          </React.StrictMode>
-        );
+        navigate('/detallecumplimientoectividadequipo', { state: { idequipo: props.idequipo, idintegrante: props.idintegrante, idactividadequipo: props.idactividadequipo, idcumplimiento: props.idcumplimiento} });
       };
 
     var descripcionRecortada;

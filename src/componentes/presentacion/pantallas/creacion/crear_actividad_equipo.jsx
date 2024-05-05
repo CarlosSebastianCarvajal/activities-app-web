@@ -1,43 +1,194 @@
  
- import React, { useState } from "react";
- import ReactDOM from 'react-dom/client';
- import MisEquiposActividades from "../listas/mis_equipos_actividades";
- 
+ import React, { useState, useContext, useEffect} from "react";
+ import { useNavigate, useLocation } from "react-router-dom";
+ import { UserContext } from '../../../../usercontext.jsx';
+
  import { Table } from 'react-bootstrap';
  import Modal from 'react-bootstrap/Modal';
  import Button from 'react-bootstrap/Button';
- import Form from 'react-bootstrap/Form';
  
+ import Navbarsecundario from "../../../navegacion/navbar/navbar2";
  import HeaderGeneral from "../../../items_generales/header";
 
  
  
  
  function CrearActividadEquipo(){
+    //contexto para los datos del usuario
+    const { userData} = useContext(UserContext);
+    const navigate = useNavigate();
+    const location = useLocation();
+    const { idequipo } = location.state;
+
+    //datos que se obtiene del formulario
+    const [formData, setFormData] = useState({
+        nombre: '',
+        descripcion: '',
+        idpais:'',
+        idciudad:'',
+        fechaculminacion:'',
+        pathdocguia:''
+      });
+
+      const handleChange = (event) => {
+        const { name, value } = event.target;
+        setFormData(prevState => ({
+          ...prevState,
+          [name]: value
+        }));
+
+        if(name === 'idpais'){
+            const fetchData = async () => {
+                try {
+                    const response = await fetch('http://localhost:8080/listarCiudadesPorIdPais/' + value, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json', 
+                    }
+                    });
+            
+                    if (!response.ok) {
+                    throw new Error('Error al obtener los paises');
+                    }
+                    const respuesta = await response.json();
+
+                    if(respuesta != null){
+                        if(respuesta.access == 1){
+                          console.log(respuesta);
+                          setCiudades(respuesta.info);
+                        }else{
+                          window.alert(respuesta.message);    
+                          console.log(respuesta);
+                        }
+                      }
+                    
+                    
+                } catch (error) {
+                    console.error('Error al obtener los datos:', error);
+                }
+                };
+            
+                fetchData();
+        }
+      };
+
      const misEquiposActividadesRender = () => {
-         const root = ReactDOM.createRoot(document.getElementById('contenido'));
-         root.render(
-           <React.StrictMode>
-             <MisEquiposActividades/>
-           </React.StrictMode>
-         );
+        navigate('/misequiposactividades', { state: { idequipo: idequipo} });
        };
 
        const [show, setShow] = useState(false);
-        const handleCloseSave = () => {
-        setShow(false);
-        const root = ReactDOM.createRoot(document.getElementById('contenido'));
-        root.render(
-          <React.StrictMode>
-            <MisEquiposActividades/>
-          </React.StrictMode>
-        );
+        const handleCloseSave = async() => {
+            setShow(false);
+            var data = JSON.stringify({
+                idequipo: idequipo,
+                actividad: {
+                    nombre: formData.nombre,
+                    descripcion: formData.descripcion,
+                    idciudad: formData.idciudad,
+                    fechaculminacion:[
+                        obtenerAnio(formData.fechaculminacion), 
+                        obtenerMes(formData.fechaculminacion),  
+                        obtenerDia(formData.fechaculminacion),
+                    ],
+                    pathdocguia:'https://www.cuentosinfantiles.top/wp-content/uploads/cuentos_digital/Rapunzel.pdf'
+                }
+              });
+            console.log(data);
+            //aqui la logica de guardado y navegar a la pantalla de lista actividad
+            try {
+                const response = await fetch('http://localhost:8080/guardarActividadEquipoActividad', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json'
+                  },
+                  body: data
+                });
+          
+                if (!response.ok) {
+                    window.alert('Error al guardar la actividad');
+                  throw new Error('Error al guardar la actividad');
+                }
+    
+                const respuesta = await response.json();
+                if(respuesta != null){
+                  if(respuesta.access == 1){
+                    console.log(respuesta);
+                    
+                    window.alert(respuesta.message);
+                    navigate('/misequiposactividades', { state: { idequipo: idequipo} });
+                  }else{
+                    window.alert(respuesta.message);    
+                    console.log(respuesta);
+                  }
+                }
+              }catch (error) {
+                  console.error('Error: ', error);
+              }
+            
+            
     }
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
 
+    const obtenerAnio = (fecha) => {
+        if (typeof fecha !== 'string' || fecha.length < 10) {
+            window.alert('Por favor, selecione una fecha valida');
+            throw new Error('La fecha proporcionada no es válida');
+        }
+        var anio = fecha.slice(0, 4);
+        return parseInt(anio);
+      };
+      const obtenerMes = (fecha) => {
+        if (typeof fecha !== 'string' || fecha.length < 10) {
+            window.alert('Por favor, selecione una fecha valida');
+            throw new Error('La fecha proporcionada no es válida');
+        }
+        var mes = fecha.slice(5, 7);
+        return parseInt(mes);
+      };
+      const obtenerDia = (fecha) => {
+        if (typeof fecha !== 'string' || fecha.length < 10) {
+            window.alert('Por favor, selecione una fecha valida');
+            throw new Error('La fecha proporcionada no es válida');
+        }
+        var dia = fecha.slice(8, 10);
+        return parseInt(dia);
+      };
+
+      //Para obtner el pais
+      const [countries, setCountries] = useState([]);
+      //Para obtener la ciudad
+      const [ciudades, setCiudades] = useState([]);
+
+
+      useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await fetch('http://localhost:8080/listarPais', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json', 
+                }
+                });
+        
+                if (!response.ok) {
+                throw new Error('Error al obtener los paises');
+                }
+                const paises = await response.json();
+                setCountries(paises);
+                
+                
+            } catch (error) {
+                console.error('Error al obtener los datos:', error);
+            }
+            };
+        
+            fetchData();
+    }, []);
+
      return (
          <div>
+            <Navbarsecundario/>
              <HeaderGeneral titulo="Crear Actividad en Equipo"/>
          <div class="container">
              <div>
@@ -59,52 +210,51 @@
  
                  <div className="divEspacio-15"></div>
                  <div>
-                 <Form>
-                     <Form.Group className="mb-3" controlId="nombreActividad">
-                         <Form.Label>NOMBRE  DE LA ACTIVIDAD</Form.Label>
-                         <Form.Control type="text" placeholder="Ingrese el nombre de la actividad" />
-                     </Form.Group>
-                     <Form.Group className="mb-3" controlId="descripcion">
-                         <Form.Label>DESCRIPCIÓN</Form.Label>
-                         <Form.Control type="text" placeholder="Ingrese la descripción de la actividad"/>
-                     </Form.Group>
-                     <Form.Group className="mb-3" controlId="fechaCulminacion">
-                         <Form.Label>FECHA CULMINACIÓN</Form.Label>
-                         <Form.Control type="date" placeholder="Ingrese fecha de culminación"/>
-                     </Form.Group>
-                     <Form.Group className="mb-3" controlId="pais">
-                         <Form.Label>PAÍS</Form.Label>
-                         <Form.Select aria-label="Default select example">
-                             <option>Escoja el pais</option>
-                             <option value="1">One</option>
-                             <option value="2">Two</option>
-                             <option value="3">Three</option>
-                         </Form.Select>
-                     </Form.Group>
- 
-                     <Form.Group className="mb-3" controlId="ciudad">
-                         <Form.Label>CIUDAD</Form.Label>
-                         <Form.Select aria-label="Default select example">
-                             <option>Escoja la ciudad</option>
-                             <option value="1">One</option>
-                             <option value="2">Two</option>
-                             <option value="3">Three</option>
-                         </Form.Select>
-                     </Form.Group>
- 
- 
-                     <Form.Group className="mb-3" controlId="archivo">
-                         <Form.Label>ARCHIVO GUÍA</Form.Label>
-                         <Form.Control type="file" placeholder="Enter email" />
-                     </Form.Group>
- 
-                    
-                     <Form.Group className="mb-3" controlId="a"></Form.Group>
-                 </Form>
-
-                 <Button variant="primary" onClick={handleShow}>
-                    Guardar Actividad
-                </Button>
+                 <form>
+                    <div className="mb-3">
+                    <label htmlFor="nombre" className="form-label">NOMBRE  DE LA ACTIVIDAD</label>
+                    <input type="text" className="form-control" id="nombre" name="nombre" value={formData.nombre} onChange={handleChange} placeholder="Ingrese nombre de actividad" />
+                    </div>
+                    <div className="mb-3">
+                    <label htmlFor="descripcion" className="form-label">DESCRIPCIÓN</label>
+                    <input type="text" className="form-control" id="descripcion" name="descripcion" value={formData.descripcion} onChange={handleChange} placeholder="Ingrese la descripción de la actividad" />
+                    </div>
+                    <div className="mb-3">
+                    <label htmlFor="fechaculminacion" className="form-label">FECHA CULMINACIÓN</label>
+                    <input type="date" className="form-control" id="fechaculminacion" name="fechaculminacion" value={formData.fechaculminacion} onChange={handleChange}  />
+                    </div>
+                    <div className="mb-3">
+                    <label htmlFor="idpais" className="form-label">PAÍS</label>
+                    <select  className="form-control" id="idpais" name="idpais" value={formData.idpais} onChange={handleChange} >
+                        {
+                            countries.map(country => {
+                                 return (
+                                        <option key={country.idpais} value={country.idpais}>{country.nombre}</option>
+                                    );
+                            })
+                        }
+                    </select>
+                    </div>
+                    <div className="mb-3">
+                    <label htmlFor="idciudad" className="form-label">CIUDAD</label>
+                    <select  className="form-control" id="idciudad" name="idciudad" value={formData.idciudad} onChange={handleChange}>
+                        {
+                            ciudades.map(ciudad => {
+                                 return (
+                                        <option key={ciudad.idciudad} value={ciudad.idciudad}>{ciudad.nombre}</option>
+                                    );
+                            })
+                        }   
+                    </select>
+                    </div>
+                    <div className="mb-3">
+                    <label htmlFor="pathdocguia" className="form-label">ARCHIVO GUÍA</label>
+                    <input type="file" className="form-control" id="pathdocguia" name="pathdocguia" value={formData.pathdocguia} onChange={handleChange} />
+                    </div>
+                    <div className="mb-3 form-check">
+                    </div>
+                    <button type="button" className="btn btn-primary" onClick={handleShow}>Guardar Actividad de Equipo</button>
+                </form> 
 
                 <Modal show={show} onHide={handleClose}>
                     <Modal.Header closeButton>

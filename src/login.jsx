@@ -25,8 +25,6 @@ function Login() {
       };
     
       const handleSubmit = async () => {
-        
-        
         try {
             const response = await fetch('http://localhost:8080/iniciarSesion', {
               method: 'POST',
@@ -56,6 +54,7 @@ function Login() {
               }
             }
         }catch (error) {
+            
             console.error('Error: ', error);
         }
       };

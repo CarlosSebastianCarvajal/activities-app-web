@@ -1,23 +1,67 @@
-import React, { useState } from "react";
-import ReactDOM from 'react-dom/client';
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import CumplimientoEquipoActividadItem from "../../items/cumplimiento_equipo_actividad_item";
 import HeaderGeneral from "../../../items_generales/header";
+import Navbarsecundario from "../../../navegacion/navbar/navbar2";
 
 import { Table } from 'react-bootstrap';
-import CumplimientoEquipos from "./cumplimiento_equipos";
+import { Spinner } from 'react-bootstrap';
 
 function CumplimientoEquiposActividades(){
+    const navigate = useNavigate();
+    const location = useLocation();
+    const [isLoading, setIsLoading] = useState(true); 
+    const { idequipo, idintegrante } = location.state;
+    const [listaEquipoActividades, setEquipoActividades] = useState([]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            var data = JSON.stringify({
+                idequipo: idequipo,
+                idintegrante:idintegrante
+              });
+
+              console.log('integrante: '+idintegrante);
+            try {
+                const response = await fetch('http://localhost:8080/listarActividadesEquipoCumplimiento', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json', // Asegúrate de ajustar el tipo de contenido según lo que espera tu API
+                },
+                body: data
+                });
+        
+                if (!response.ok) {
+                throw new Error('Error al obtener los datos');
+                }
+        
+                const respuesta = await response.json();
+                console.log(respuesta);
+                if(respuesta.access == 1){
+                    setEquipoActividades(respuesta.info);
+                    setIsLoading(false);
+                }else{
+                    window.alert(respuesta.message);  
+                    setIsLoading(false);
+                    throw new Error(respuesta.message);
+                }
+                
+            } catch (error) {
+                console.error('Error al obtener los datos:', error);
+                setIsLoading(false);
+            }
+            };
+        
+            fetchData();
+        }, []);
+
     const cumplimientoEquiposRender = () => {
-        const root = ReactDOM.createRoot(document.getElementById('contenido'));
-        root.render(
-        <React.StrictMode>
-            <CumplimientoEquipos/>
-        </React.StrictMode>
-        );
+        navigate('/equipostrabajo');
     };
     return (
         <div>
+            <Navbarsecundario/>
             <HeaderGeneral titulo="Actividades a cumplir del equipo"/>
         <div class="container">
                 <div>
@@ -40,30 +84,33 @@ function CumplimientoEquiposActividades(){
             <div>
                 <div className="divEspacio-15"></div>
                 <div className="row">
-                    <CumplimientoEquipoActividadItem 
-                        nombre="Ir al Doctor"
-                        fecha="23-02-2024"
-                        estado="Pendiente"
-                        descripcion="Pariatur cillum proident sit veniam dolor consectetur deserunt fugiat et. Lorem excepteur ipsum incididunt est ullamco tempor magna fugiat consequat esse velit incididunt excepteur sint. Proident nulla proident Lorem nisi et aliquip sint aliquip magna. Consequat deserunt laborum sit nostrud non enim minim. Mollit Lorem aliqua do deserunt deserunt voluptate sunt culpa fugiat. Aliqua non ullamco adipisicing occaecat aliquip."
-                    />
-                    <CumplimientoEquipoActividadItem 
-                        nombre="Entrega de software"
-                        fecha="23-02-2024"
-                        estado="Pendiente"
-                        descripcion="Pariatur cillum proident sit veniam dolor consectetur deserunt fugiat et. Lorem excepteur ipsum incididunt est ullamco tempor magna fugiat consequat esse velit incididunt excepteur sint. Proident nulla proident Lorem nisi et aliquip sint aliquip magna. Consequat deserunt laborum sit nostrud non enim minim. Mollit Lorem aliqua do deserunt deserunt voluptate sunt culpa fugiat. Aliqua non ullamco adipisicing occaecat aliquip."
-                    />
-                    <CumplimientoEquipoActividadItem 
-                        nombre="Reunion con cliente"
-                        fecha="23-02-2024"
-                        estado="Pendiente"
-                        descripcion="Pariatur cillum proident sit veniam dolor consectetur deserunt fugiat et. Lorem excepteur ipsum incididunt est ullamco tempor magna fugiat consequat esse velit incididunt excepteur sint. Proident nulla proident Lorem nisi et aliquip sint aliquip magna. Consequat deserunt laborum sit nostrud non enim minim. Mollit Lorem aliqua do deserunt deserunt voluptate sunt culpa fugiat. Aliqua non ullamco adipisicing occaecat aliquip."
-                    />
-                    <CumplimientoEquipoActividadItem 
-                        nombre="Entregar informe de calificaciones"
-                        fecha="15-02-2024"
-                        estado="Cumplida"
-                        descripcion="Magna fugiat consequat esse velit incididunt excepteur sint. Proident nulla proident Lorem nisi et aliquip sint aliquip magna. Consequat deserunt laborum sit nostrud non enim minim. Mollit Lorem aliqua do deserunt deserunt voluptate sunt culpa fugiat. Aliqua non ullamco adipisicing occaecat aliquip."
-                    />
+                {
+                    isLoading ? (
+                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+                                <Spinner animation="border" role="status">
+                                    <span className="sr-only"></span>
+                                    
+                                </Spinner>
+                                <text>Cargando...</text>
+                            </div>
+                    ):(
+                    listaEquipoActividades.map(itemActividad => {
+                        return (
+                                <CumplimientoEquipoActividadItem  
+                                    idequipo = {idequipo}
+                                    idintegrante = {idintegrante}
+                                    idactividadequipo={itemActividad.idactividadequipo}
+                                    idcumplimiento={itemActividad.idcumplimiento}
+
+                                    nombre={itemActividad.actividad.nombre}
+                                    descripcion={itemActividad.actividad.descripcion}
+                                    fecha={itemActividad.fechaculminacion}
+                                    estado={itemActividad.estado}
+                                />
+                        );
+                    })
+                    )
+                } 
                 </div>
             </div>
         </div>

@@ -1,22 +1,60 @@
-import React, { useState } from "react";
-import ReactDOM from 'react-dom/client';
-import CumplimientoEquipoItem from "../../items/cumplimiento_equipo_item";
-import HeaderGeneral from "../../../items_generales/header";
+import React, { useState, useContext, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { UserContext } from '../../../../usercontext.jsx';
+
 import { Table } from 'react-bootstrap';
-import Home from "../principal/home";
+import { Spinner } from 'react-bootstrap';
+
+import HeaderGeneral from "../../../items_generales/header";
+import Navbarsecundario from "../../../navegacion/navbar/navbar2";
+import CumplimientoEquipoItem from "../../items/cumplimiento_equipo_item";
+
 
 function CumplimientoEquipos(){
-    const homeRender = () => {
-        const root = ReactDOM.createRoot(document.getElementById('contenido'));
-        root.render(
-          <React.StrictMode>
-            <Home/>
-          </React.StrictMode>
-        );
-      };
+    const navigate = useNavigate();
+    const { userData } = useContext(UserContext);
+    const [isLoading, setIsLoading] = useState(true); 
+
+    const [listaEquipos, setEquipos] = useState([]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await fetch('http://localhost:8080/listarEquiposIngresados/' + userData.userId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json', // Asegúrate de ajustar el tipo de contenido según lo que espera tu API
+                }
+                });
+        
+                if (!response.ok) {
+                throw new Error('Error al obtener los datos');
+                }
+        
+                const respuesta = await response.json();
+                console.log(respuesta);
+                if(respuesta.access == 1){
+                    setEquipos(respuesta.info);
+                    setIsLoading(false);
+                }else{
+                    //window.alert(respuesta.message);  
+                    setIsLoading(false);
+                    console.log(respuesta.message);
+                    //throw new Error(respuesta.message);
+                }
+                
+            } catch (error) {
+                console.error('Error al obtener los datos:', error);
+                setIsLoading(false);
+            }
+            };
+        
+        fetchData();
+    }, []);
 
     return (
         <div>
+            <Navbarsecundario/>
             <HeaderGeneral titulo="Equipos de trabajo"/>
         <div class="container">
             <div>
@@ -35,23 +73,30 @@ function CumplimientoEquipos(){
             <div>
                 <div className="divEspacio-15"></div>
                 <div className="row">
-                    <CumplimientoEquipoItem 
-                        nombreEquipo="Equipo 11"
-                        color="#F5533E"
-                        descripcion="Pariatur cillum proident sit veniam dolor consectetur deserunt fugiat et. Lorem excepteur ipsum incididunt est ullamco tempor magna fugiat consequat esse velit incididunt excepteur sint. Proident nulla proident Lorem nisi et aliquip sint aliquip magna. Consequat deserunt laborum sit nostrud non enim minim. Mollit Lorem aliqua do deserunt deserunt voluptate sunt culpa fugiat. Aliqua non ullamco adipisicing occaecat aliquip."
-                    />
-
-                    <CumplimientoEquipoItem 
-                        nombreEquipo="Equipo 12"
-                        color="#D6F1FF"
-                        descripcion="Pariatur cillum proident sit veniam dolor consectetur deserunt fugiat et. Lorem excepteur ipsum incididunt est ullamco tempor magna fugiat consequat esse velit incididunt excepteur sint. Proident nulla proident Lorem nisi et aliquip sint aliquip magna. Consequat deserunt laborum sit nostrud non enim minim. Mollit Lorem aliqua do deserunt deserunt voluptate sunt culpa fugiat. Aliqua non ullamco adipisicing occaecat aliquip."
-                    />
-                    <CumplimientoEquipoItem 
-                        nombreEquipo="Equipo 13"
-                        color="#31FF06"
-                        descripcion="Pariatur cillum proident sit veniam dolor consectetur deserunt fugiat et. Lorem excepteur ipsum incididunt est ullamco tempor magna fugiat consequat esse velit incididunt excepteur sint. Proident nulla proident Lorem nisi et aliquip sint aliquip magna. Consequat deserunt laborum sit nostrud non enim minim. Mollit Lorem aliqua do deserunt deserunt voluptate sunt culpa fugiat. Aliqua non ullamco adipisicing occaecat aliquip."
-                    />
-                    
+                {
+                    isLoading ? (
+                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+                                <Spinner animation="border" role="status">
+                                    <span className="sr-only"></span>
+                                    
+                                </Spinner>
+                                <text>Cargando...</text>
+                            </div>
+                    ):(
+                    listaEquipos.map(itemEquipo => {
+                        return (
+                            <CumplimientoEquipoItem
+                                idintegrante={itemEquipo.idintegrante}
+                                idequipo={itemEquipo.equipo.idequipo} 
+                                nombreEquipo={itemEquipo.equipo.nombre}
+                                color={itemEquipo.equipo.color}
+                                descripcion={itemEquipo.equipo.descripcion}
+                            />
+                            
+                        );
+                    })
+                    )
+                }                     
                 </div>
             </div>
         </div>

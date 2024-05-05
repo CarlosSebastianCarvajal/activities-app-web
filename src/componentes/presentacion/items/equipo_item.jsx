@@ -1,18 +1,12 @@
 import React, { useState } from "react";
-import ReactDOM from 'react-dom/client';
 
-import MisEquiposActividades from '../pantallas/listas/mis_equipos_actividades';
-
+import { useNavigate } from "react-router-dom";
 
 function EquipoItem(props){
-    
+    const navigate = useNavigate();
+
     const misEquiposActiviadesRender = () => {
-        const root = ReactDOM.createRoot(document.getElementById('contenido'));
-        root.render(
-          <React.StrictMode>
-            <MisEquiposActividades/>
-          </React.StrictMode>
-        );
+        navigate('/misequiposactividades', { state: { idequipo: props.idequipo} });
       };
 
 
